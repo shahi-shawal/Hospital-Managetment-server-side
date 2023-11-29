@@ -42,7 +42,7 @@ const recomenedCollection = database.collection("recomenedCollection");
 const testsCollection = database.collection("testsCollection");
 const userCollection = database.collection("userCollection")
 const bannerCollection= database.collection("bannerCollection")
-  
+const bookCollection = database.collection("bookCollection")  
 
 
 
@@ -102,6 +102,12 @@ app.post("/users", async(req, res)=>{
 
 app.get("/users", async(req, res)=>{
   const result = await userCollection.find().toArray()
+  res.send(result)
+})
+app.get("/users/:email", async(req, res)=>{
+  const email = req.params.email
+  const query ={email: email}
+  const result = await userCollection.findOne(query)
   res.send(result)
 })
 
@@ -215,6 +221,37 @@ app.put("/tests/:id", async(req, res)=>{
   const result = await testsCollection.updateOne(filter,updatedDoc)
   res.send(result)
 })
+
+app.patch("/test/:id", async(req, res)=>{
+  const id = req.params.id
+  const filter = {_id: new ObjectId(id)}
+  const updatedDoc={
+    $inc:{
+      slots:-1
+    }
+  }
+  const result = await testsCollection.updateOne(filter,updatedDoc)
+  res.send(result)
+})
+
+
+// booked api
+app.post("/testbook", async(req, res)=>{
+  const test = req.body
+  const result = await bookCollection.insertOne(test)
+  res.send(result)
+})
+app.get("/testbook", async(req, res)=>{
+  const result = await bookCollection.find().toArray()
+  res.send(result)
+})
+app.get("/testbook/:patientemail", async(req, res)=>{
+  const patientemail= req.params.patientemail
+  const query={patientemail:patientemail}
+  const result = await bookCollection.find(query).toArray()
+  res.send(result)
+})
+
 
 app.get("/", (req, res) => {
     res.send("Health Lab is Runing");
