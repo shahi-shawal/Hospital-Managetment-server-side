@@ -40,13 +40,127 @@ dbConnect()
 const database = client.db("Health-lab");
 const recomenedCollection = database.collection("recomenedCollection");
 const testsCollection = database.collection("testsCollection");
+const userCollection = database.collection("userCollection")
+const bannerCollection= database.collection("bannerCollection")
+  
 
-    app.get("/recomanded", async(req, res)=>{
+
+
+app.get("/banner", async(req, res)=>{
+  const result = await bannerCollection.find().toArray()
+  res.send(result)
+})
+
+app.post("/banner", async(req, res)=>{
+  const banner= req.body
+  const result = await bannerCollection.insertOne(banner)
+  res.send(result)
+})
+
+app.delete("/banner/:id", async(req, res)=>{
+  const id = req.params.id
+  const query={_id: new ObjectId(id)}
+  const result = await bannerCollection.deleteOne(query)
+  res.send(result) 
+})
+
+app.patch("/banner/:id", async(req, res)=>{
+  const id =req.params.id
+  const filter ={}
+  // const filter = {_id: new ObjectId(id)}
+  const updatedDoc ={
+    $set:{
+      isActive:"true"
+    }
+  }
+   await bannerCollection.updateMany({}, {$set:{isActive:"false"}})
+  if (id) {
+    filter._id= new ObjectId(id)
+    const result = await bannerCollection.updateOne(filter, updatedDoc)
+    res.send(result)
+  }
+ 
+  
+})
+
+
+app.get("/recomanded", async(req, res)=>{
       const result =await recomenedCollection
       .find().toArray()
       console.log(result.length);
       res.send(result)
   })
+
+// users 
+
+app.post("/users", async(req, res)=>{
+  const user= req.body;
+  const result = await userCollection.insertOne(user)
+  console.log(result)
+  res.send(result) 
+})
+
+app.get("/users", async(req, res)=>{
+  const result = await userCollection.find().toArray()
+  res.send(result)
+})
+
+
+app.get("/users/admin/:email", async(req, res)=>{
+  const email= req.params.email
+  const filter = {email : email}
+  const user = await userCollection.findOne(filter)
+  let admin = false
+  if (user) {
+    admin = user?.role === "admin"
+  }
+  res.send({admin}) 
+})
+
+
+app.delete("/users/:id", async(req, res)=>{
+  const id = req.params.id
+  const query={_id: new ObjectId(id)}
+  const result= await userCollection.deleteOne(query)
+  res.send(result)
+})
+
+
+app.patch("/users/admin/:id", async(req, res)=>{
+  const id = req.params.id
+  const filter = {_id: new ObjectId(id)}
+  const updatedDoc={
+    $set:{
+      role :"admin"
+    }
+  }
+  const result = await userCollection.updateOne(filter, updatedDoc)
+  res.send(result)
+})
+app.patch("/users/block/:id", async(req, res)=>{
+  const id = req.params.id
+  const filter = {_id: new ObjectId(id)}
+  const updatedDoc={
+    $set:{
+      status :"block"
+    }
+  }
+  const result = await userCollection.updateOne(filter, updatedDoc)
+  res.send(result)
+})
+app.patch("/users/active/:id", async(req, res)=>{
+  const id = req.params.id
+  const filter = {_id: new ObjectId(id)}
+  const updatedDoc={
+    $set:{
+      status :"active"
+    }
+  }
+  const result = await userCollection.updateOne(filter, updatedDoc)
+  res.send(result)
+})
+
+
   app.get("/tests", async(req, res)=>{
      const filter=req.query
      console.log(filter);
@@ -63,14 +177,44 @@ const testsCollection = database.collection("testsCollection");
       res.send(result)
   })
 
+app.post("/tests", async(req, res)=>{
+  const test=req.body
+  const result = await testsCollection.insertOne(test)
+  res.send(result)
+})
+
+
 app.get("/tests/:id", async(req, res)=>{
   const id = req.params.id
   const query= {_id: new ObjectId(id)}
   const result= await testsCollection.findOne(query)
   res.send(result)
 })
+app.delete("/tests/:id", async(req, res)=>{
+  const id = req.params.id
+  const query= {_id: new ObjectId(id)}
+  const result= await testsCollection.deleteOne(query)
+  res.send(result)
+})
 
-
+app.put("/tests/:id", async(req, res)=>{
+  const id = req.params.id
+  const test= req.body
+  const filter= {_id: new ObjectId(id)}
+  const updatedDoc ={
+    $set:{
+      name:test.name,
+      price:test.price,
+      date:test.date,
+      slots:test.slots,
+      timeslots: test.timeslots,
+      description:test.description,
+      image:test.image
+    }
+  }
+  const result = await testsCollection.updateOne(filter,updatedDoc)
+  res.send(result)
+})
 
 app.get("/", (req, res) => {
     res.send("Health Lab is Runing");
