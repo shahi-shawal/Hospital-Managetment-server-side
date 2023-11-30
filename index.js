@@ -296,6 +296,12 @@ app.get("/report", async(req, res)=>{
   const result = await reportCollection.find().toArray()
   res.send(result)
 })
+app.get("/report/:email", async(req, res)=>{
+  const email = req.params.email
+  const filter ={email:email}
+  const result = await reportCollection.findOne(email)
+  res.send(result)
+})
 
 
 app.get("/", (req, res) => {
