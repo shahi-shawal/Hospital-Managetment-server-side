@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
@@ -14,7 +15,7 @@ app.use(cors())
 
 
 
-const uri = "mongodb+srv://shahishawal:rKoC313vM9lCtafh@cluster0.jhvdrnw.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jhvdrnw.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -43,7 +44,7 @@ const testsCollection = database.collection("testsCollection");
 const userCollection = database.collection("userCollection")
 const bannerCollection= database.collection("bannerCollection")
 const bookCollection = database.collection("bookCollection")  
-
+const reportCollection = database.collection("reportCollection")  
 
 
 app.get("/banner", async(req, res)=>{
@@ -172,7 +173,7 @@ app.patch("/users/active/:id", async(req, res)=>{
      console.log(filter);
      let query ={}
      if (filter.search) {
-      query = {availableDates
+      query = {date
         : {
         $regex:`${filter.search}`, $options:"i"
       }}
@@ -227,7 +228,8 @@ app.patch("/test/:id", async(req, res)=>{
   const filter = {_id: new ObjectId(id)}
   const updatedDoc={
     $inc:{
-      slots:-1
+      slots:-1,
+      book: 1
     }
   }
   const result = await testsCollection.updateOne(filter,updatedDoc)
@@ -242,13 +244,56 @@ app.post("/testbook", async(req, res)=>{
   res.send(result)
 })
 app.get("/testbook", async(req, res)=>{
-  const result = await bookCollection.find().toArray()
+  const filter=req.query
+     console.log(filter);
+     let query ={}
+     if (filter.search) {
+      query = {'patientemail'
+        : {
+        $regex:`${filter.search}`, $options:"i"
+      }}
+      
+     } 
+     console.log(query)
+  const result = await bookCollection.find(query).toArray()
   res.send(result)
 })
 app.get("/testbook/:patientemail", async(req, res)=>{
   const patientemail= req.params.patientemail
   const query={patientemail:patientemail}
   const result = await bookCollection.find(query).toArray()
+  res.send(result)
+})
+app.delete("/testbook/:id", async(req, res)=>{
+  const id= req.params.id
+  const query={_id:new ObjectId(id)}
+  const result = await bookCollection.deleteOne(query)
+  res.send(result)
+})
+
+app.patch("/testbook/re/:id", async(req,res)=>{
+  const id = req.params.id
+  const filter = {_id: new ObjectId(id)}
+  const options = { upsert: true };
+  const updatedDoc={
+    $set:{
+      reportStatus:"delivered"
+    }
+
+  }
+  console.log(updatedDoc);
+  const result = await bookCollection.updateOne(filter, updatedDoc, options)
+  res.send(result)
+})
+
+app.post("/report", async(req, res)=>{
+  const report = req.body
+  const result = await reportCollection.insertOne(report)
+  res.send(result)
+})
+
+app.get("/report", async(req, res)=>{
+  const result = await reportCollection.find().toArray()
   res.send(result)
 })
 
