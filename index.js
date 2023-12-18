@@ -124,6 +124,16 @@ app.get("/users/admin/:email", async(req, res)=>{
   res.send({admin}) 
 })
 
+app.get("/users/status/:email", async(req, res)=>{
+  const email = req.params.email
+  const filter = {email : email}
+  const user = await userCollection.findOne(filter)
+  let status = false
+  if (user) {
+    status = user?.status ==="block"
+  }
+  res.send({status})
+})
 
 app.delete("/users/:id", async(req, res)=>{
   const id = req.params.id
@@ -298,8 +308,8 @@ app.get("/report", async(req, res)=>{
 })
 app.get("/report/:email", async(req, res)=>{
   const email = req.params.email
-  const filter ={email:email}
-  const result = await reportCollection.findOne(email)
+  const query ={email:email}
+  const result = await reportCollection.findOne(query)
   res.send(result)
 })
 
